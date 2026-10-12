@@ -1,0 +1,111 @@
+/* Styles specific to Homework 1 (on top of ../style.css) */
+
+:root {
+  --green: #5fcf8f;
+  --red: #ff7b7b;
+  --grey-pt: #4a5163;
+  --gold: #f2c45a;
+}
+
+main section { margin-bottom: 2.6rem; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { margin-top: 1.6rem; }
+.muted { color: var(--muted); font-size: 0.95rem; }
+code { padding: 0.05rem 0.3rem; }
+
+.formula {
+  text-align: center;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 1.1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+
+/* ---------- controls ---------- */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 0.8rem 1.2rem; align-items: flex-end;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.9rem 1rem; margin: 1rem 0;
+}
+.controls label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+select, input, button {
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.6rem;
+}
+input[type="number"] { width: 7rem; }
+input[type="text"] { width: min(34rem, 80vw); font-family: ui-monospace, Consolas, monospace; }
+input[type="range"] { padding: 0; }
+button { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #0b0d12; border-color: var(--accent); font-weight: 600; }
+button.primary:hover { filter: brightness(1.1); }
+
+/* ---------- info cards ---------- */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.7rem; margin: 1rem 0; }
+.card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem;
+}
+.card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.card .value { font-family: ui-monospace, Consolas, monospace; font-size: 1.05rem; margin-top: 0.15rem; word-break: break-word; }
+.card .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+.ok { color: var(--green); }
+.bad { color: var(--red); }
+
+/* ---------- tables ---------- */
+.table-wrap { overflow-x: auto; margin: 0.6rem 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { border-bottom: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
+td.mono, td code { font-family: ui-monospace, Consolas, monospace; }
+tr.highlight td { background: rgba(124, 156, 255, 0.12); }
+tr.final td { background: rgba(95, 207, 143, 0.14); font-weight: 600; }
+
+/* ---------- result ---------- */
+.result {
+  margin-top: 1.4rem; padding: 1rem 1.2rem; border-radius: 10px;
+  border: 1px solid var(--green); background: rgba(95, 207, 143, 0.08);
+  font-family: ui-monospace, Consolas, monospace; font-size: 1.15rem;
+}
+.result .big { font-size: 1.5rem; color: var(--green); font-weight: 700; }
+
+/* ---------- visualization ---------- */
+.viz { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (max-width: 760px) { .viz { grid-template-columns: 1fr; } }
+#grid { width: 100%; height: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+#grid .gridline { stroke: #232837; stroke-width: 1; }
+#grid .axis-label { fill: var(--muted); font-size: 11px; font-family: ui-monospace, monospace; }
+#grid .pt { fill: var(--grey-pt); }
+#grid .pt.sub { fill: var(--accent); }
+#grid .pt.visited { fill: var(--green); }
+#grid .pt.current { fill: var(--gold); }
+#grid .pt-label { fill: var(--text); font-size: 11px; font-family: ui-monospace, monospace; pointer-events: none; }
+#grid .arrow { stroke: var(--red); stroke-width: 2; fill: none; transition: stroke-dashoffset 0.6s ease; }
+#grid .ring { fill: none; stroke: var(--gold); stroke-width: 2.5; }
+#grid .ring.op { stroke: var(--red); }
+.step-panel {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem;
+  font-size: 0.95rem; min-height: 14rem;
+}
+.step-panel .step-title { font-weight: 700; margin-bottom: 0.5rem; }
+.step-panel .calc { font-family: ui-monospace, Consolas, monospace; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.7; }
+.step-panel .progress { color: var(--muted); font-size: 0.8rem; margin-top: 0.8rem; }
+
+/* ---------- real curve ---------- */
+.mono-out {
+  font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; word-break: break-all;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem;
+  white-space: pre-wrap; min-height: 2rem;
+}
+
+/* ---------- charts ---------- */
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; }
+@media (max-width: 460px) { .charts { grid-template-columns: 1fr; } }
+.charts figure {
+  margin: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem;
+}
+.charts canvas { width: 100%; height: 240px; display: block; }
+.charts figcaption { color: var(--muted); font-size: 0.82rem; margin-top: 0.4rem; }
+
+ul li { margin-bottom: 0.5rem; }
