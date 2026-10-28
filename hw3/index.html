@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMWK 3 — Penetration Scores, LLN and CLT | Statistics Homework</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="hw3.css">
+</head>
+<body>
+  <header>
+    <p><a href="../index.html">← Back to all homeworks</a></p>
+    <span class="tag">HMWK 3</span>
+    <h1>n Systems, m Attackers: Penetration Scores, LLN and CLT</h1>
+    <p class="subtitle">The penetration process as a random walk with i.i.d. increments: simulated trajectories, the three normalizations S<sub>n</sub>, S<sub>n</sub>/n and S<sub>n</sub>/√n, the Law of Large Numbers and the Central Limit Theorem.</p>
+  </header>
+
+  <main>
+    <nav class="toc">
+      <a href="#model">1. Model</a>
+      <a href="#theory">2. What to expect</a>
+      <a href="#traj">3. Trajectories</a>
+      <a href="#growing">4. Increasing n</a>
+      <a href="#clt">5. CLT</a>
+      <a href="#attackers">6. The role of m</a>
+      <a href="#discussion">7. Interpretation</a>
+    </nav>
+
+    <!-- ================================================================ -->
+    <section id="model">
+      <h2>1. The model</h2>
+      <p>
+        There are <strong>n systems</strong> and <strong>m attackers</strong>. Each attacker works through the n systems
+        one after the other; at system i it obtains a penetration score X<sub>i</sub>. The scores are independent and
+        identically distributed, both across systems and across attackers, so every attacker produces one independent
+        <em>trajectory</em> of the partial sums
+      </p>
+      <p class="formula">S<sub>k</sub> = X<sub>1</sub> + X<sub>2</sub> + … + X<sub>k</sub>, &nbsp; k = 1, …, n</p>
+      <p>and the m attackers give m independent samples of every quantity we study.</p>
+      <div class="two">
+        <div class="box"><h4>Bernoulli model</h4>
+          <p>X<sub>i</sub> ∈ {0, 1}, P(X<sub>i</sub> = 1) = p.<br>
+          1 = system i was penetrated, 0 = the attack failed. S<sub>n</sub> counts the penetrated systems and has a
+          Binomial(n, p) distribution.<br>
+          μ = E[X<sub>i</sub>] = p, &nbsp; σ² = Var(X<sub>i</sub>) = p(1 − p).</p></div>
+        <div class="box"><h4>Rademacher model</h4>
+          <p>X<sub>i</sub> ∈ {−1, +1}, each with probability ½.<br>
+          +1 = the attacker gains ground, −1 = it is detected and loses ground. S<sub>n</sub> is a symmetric random
+          walk, (S<sub>n</sub> + n)/2 ~ Binomial(n, ½).<br>
+          μ = 0, &nbsp; σ² = 1: the symmetric, zero-mean case.</p></div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="theory">
+      <h2>2. What the theory predicts</h2>
+      <p>By linearity of expectation and independence of the increments, E[S<sub>n</sub>] = nμ and Var(S<sub>n</sub>) = nσ². Dividing by a constant c divides the mean by c and the variance by c²:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Quantity</th><th>Mean</th><th>Variance</th><th>Bernoulli (n → ∞)</th><th>Rademacher (n → ∞)</th></tr></thead>
+          <tbody>
+            <tr><td><b>S<sub>n</sub></b> total score</td><td>nμ</td><td>nσ²</td><td>mean and spread both grow: centre ~ n, width ~ √n</td><td>centre 0, width ~ √n: wanders further and further</td></tr>
+            <tr><td><b>S<sub>n</sub>/n</b> average score</td><td>μ</td><td>σ²/n → 0</td><td>→ p in probability (LLN)</td><td>→ 0 in probability (LLN)</td></tr>
+            <tr><td><b>S<sub>n</sub>/√n</b> normalized score</td><td>μ√n</td><td>σ² (constant)</td><td>mean p√n → ∞: no limit unless centred</td><td>→ N(0, 1) in distribution (CLT)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two">
+        <div class="box"><h4>Weak Law of Large Numbers</h4>
+          <p>For every ε &gt; 0: &nbsp; P(|S<sub>n</sub>/n − μ| &gt; ε) → 0.<br>
+          Proof via Chebyshev: P(|S<sub>n</sub>/n − μ| &gt; ε) ≤ Var(S<sub>n</sub>/n)/ε² = σ²/(nε²).</p></div>
+        <div class="box"><h4>Central Limit Theorem</h4>
+          <p>(S<sub>n</sub> − nμ)/(σ√n) → N(0, 1) in distribution.<br>
+          Rademacher: μ = 0, σ = 1, so S<sub>n</sub>/√n itself → N(0, 1). Bernoulli: S<sub>n</sub>/√n must first be centred and scaled: (S<sub>n</sub> − np)/√(np(1−p)).</p></div>
+      </div>
+      <p class="muted">
+        The three normalizations correspond to three scales: dividing by 1 keeps the fluctuations (√n) and the drift (n);
+        dividing by n kills the fluctuations and keeps the drift (LLN); dividing by √n keeps the fluctuations at a
+        constant size, which is exactly the scale at which their <em>shape</em> becomes Gaussian (CLT).
+      </p>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="traj">
+      <h2>3. Simulated trajectories</h2>
+      <div class="controls">
+        <label>Model
+          <select id="tModel"><option value="bern">Bernoulli</option><option value="rad" selected>Rademacher</option></select>
+        </label>
+        <label>p (Bernoulli)
+          <input id="tP" type="number" min="0.01" max="0.99" step="0.01" value="0.3">
+        </label>
+        <label>n systems
+          <input id="tN" type="number" min="10" max="100000" value="1000">
+        </label>
+        <label>m attackers
+          <input id="tM" type="number" min="10" max="20000" value="2000">
+        </label>
+        <label>paths drawn
+          <input id="tPaths" type="number" min="1" max="200" value="40">
+        </label>
+        <button id="tRun" class="primary">Simulate</button>
+      </div>
+      <div class="charts three">
+        <figure><canvas id="cS"></canvas><figcaption><b>S<sub>k</sub></b> — total score. Dashed: kμ ± 2σ√k.</figcaption></figure>
+        <figure><canvas id="cAvg"></canvas><figcaption><b>S<sub>k</sub>/k</b> — average score. Dashed: μ ± 2σ/√k, closing in on μ.</figcaption></figure>
+        <figure><canvas id="cNorm"></canvas><figcaption><b>S<sub>k</sub>/√k</b> — normalized score. Dashed: μ√k ± 2σ, a band of constant width.</figcaption></figure>
+      </div>
+      <h3>Distribution over the m attackers at k = n</h3>
+      <div class="charts three">
+        <figure><canvas id="hS"></canvas><figcaption>Histogram of S<sub>n</sub>; line: exact binomial distribution.</figcaption></figure>
+        <figure><canvas id="hAvg"></canvas><figcaption>Histogram of S<sub>n</sub>/n; line: normal approximation N(μ, σ²/n).</figcaption></figure>
+        <figure><canvas id="hNorm"></canvas><figcaption>Histogram of S<sub>n</sub>/√n; line: N(μ√n, σ²).</figcaption></figure>
+      </div>
+      <div class="table-wrap"><table id="tStats"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="growing">
+      <h2>4. Increasing n</h2>
+      <p class="muted">One simulation with m attackers over n<sub>max</sub> systems; S<sub>n</sub> is recorded at n = 1, 2, 5, 10, 20, 50, … for every attacker.</p>
+      <div class="controls">
+        <label>Model
+          <select id="gModel"><option value="bern">Bernoulli</option><option value="rad" selected>Rademacher</option></select>
+        </label>
+        <label>p (Bernoulli)
+          <input id="gP" type="number" min="0.01" max="0.99" step="0.01" value="0.3">
+        </label>
+        <label>n<sub>max</sub>
+          <select id="gN"><option>1000</option><option selected>10000</option><option>100000</option></select>
+        </label>
+        <label>m attackers
+          <input id="gM" type="number" min="100" max="10000" value="2000">
+        </label>
+        <label>ε (LLN)
+          <input id="gEps" type="number" min="0.005" max="0.5" step="0.005" value="0.05">
+        </label>
+        <button id="gRun" class="primary">Run</button>
+      </div>
+      <div class="charts">
+        <figure><canvas id="cVar"></canvas><figcaption><b>Variance under the three normalizations</b> (log–log). Dots: sample variance over the m attackers; dashed: theory nσ², σ², σ²/n. Slopes +1, 0, −1.</figcaption></figure>
+        <figure><canvas id="cLLN"></canvas><figcaption><b>Law of Large Numbers.</b> Estimated P(|S<sub>n</sub>/n − μ| &gt; ε) against n (log scale), with the Chebyshev bound σ²/(nε²) and the CLT approximation 2(1 − Φ(ε√n/σ)).</figcaption></figure>
+      </div>
+      <div class="table-wrap"><table id="gTable"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="clt">
+      <h2>5. Convergence in distribution: the Central Limit Theorem</h2>
+      <div class="controls">
+        <label>Model
+          <select id="cModel"><option value="rad" selected>Rademacher: S<sub>n</sub>/√n</option><option value="bern">Bernoulli: (S<sub>n</sub> − np)/√(np(1−p))</option></select>
+        </label>
+        <label>p (Bernoulli)
+          <input id="cP" type="number" min="0.01" max="0.99" step="0.01" value="0.1">
+        </label>
+        <label>m attackers
+          <input id="cM" type="number" min="200" max="20000" value="5000">
+        </label>
+        <button id="cRun" class="primary">Run</button>
+      </div>
+      <div id="cltGrid" class="charts four"></div>
+      <div class="charts">
+        <figure><canvas id="cKS"></canvas><figcaption><b>Kolmogorov–Smirnov distance</b> sup<sub>x</sub>|F<sub>n</sub>(x) − Φ(x)| between the empirical distribution and N(0, 1) (log–log). It decreases like 1/√n (Berry–Esseen) until it hits the Monte Carlo noise floor ≈ 0.87/√m.</figcaption></figure>
+        <figure><canvas id="cCdf"></canvas><figcaption><b>Empirical CDF</b> at the largest n against Φ (red). The staircase is the lattice structure of S<sub>n</sub>: steps of size 2/√n (Rademacher) that become invisible as n grows.</figcaption></figure>
+      </div>
+      <ul>
+        <li>For small n the distribution of S<sub>n</sub>/√n is visibly discrete (S<sub>1</sub>/√1 takes only the values ±1) and the histogram
+          looks nothing like a bell. Already for n ≈ 30 it is close to N(0, 1), and the KS distance falls as 1/√n.</li>
+        <li>For the Bernoulli model with small p the convergence is slower: the distribution is skewed (skewness
+          (1 − 2p)/√(np(1 − p))), because penetrations are rare events and the Poisson regime dominates until np is large.</li>
+        <li>Convergence in distribution is a statement about the <em>shape</em> of the distribution, not about single
+          trajectories: a given attacker's S<sub>n</sub>/√n does not settle anywhere, it keeps fluctuating (see the
+          trajectories in section 3).</li>
+      </ul>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="attackers">
+      <h2>6. The role of the number of attackers m</h2>
+      <p>
+        n and m play different roles. n is the length of each trajectory, the asymptotic variable of the LLN and CLT.
+        m is the number of independent copies: it does not change the distribution of S<sub>n</sub>, but it decides
+        <strong>how well we can estimate it</strong> and <strong>how extreme the best attacker is</strong>.
+      </p>
+      <div class="controls">
+        <label>Model
+          <select id="aModel"><option value="bern">Bernoulli</option><option value="rad" selected>Rademacher</option></select>
+        </label>
+        <label>p (Bernoulli)
+          <input id="aP" type="number" min="0.01" max="0.99" step="0.01" value="0.3">
+        </label>
+        <label>n systems
+          <input id="aN" type="number" min="10" max="20000" value="1000">
+        </label>
+        <button id="aRun" class="primary">Run</button>
+      </div>
+      <div class="charts">
+        <figure><canvas id="cMax"></canvas><figcaption><b>The best attacker.</b> max<sub>j</sub> (S<sub>n</sub><sup>(j)</sup> − nμ)/(σ√n) against m (log scale), averaged over repetitions. Solid line: expected maximum of m standard normals (computed exactly); dashed: the asymptotic approximation √(2 ln m). Lower curve: the worst attacker (min).</figcaption></figure>
+        <figure><canvas id="cErr"></canvas><figcaption><b>Precision of the estimates.</b> Error |mean of S<sub>n</sub>/n − μ| and |sample variance of S<sub>n</sub>/√n − σ²| against m (log–log), with the reference slope 1/√m.</figcaption></figure>
+      </div>
+      <div class="table-wrap"><table id="aTable"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="discussion">
+      <h2>7. Interpretation: system size and number of attackers</h2>
+      <ul>
+        <li><strong>Total score S<sub>n</sub>: larger systems are penetrated more, and less predictably in absolute
+          terms.</strong> In the Bernoulli model an attacker penetrates on average np of the n systems; the uncertainty
+          around that number grows as √(np(1 − p)). Doubling the infrastructure doubles the expected damage but
+          increases its standard deviation only by √2.</li>
+        <li><strong>Average score S<sub>n</sub>/n: the penetration rate becomes predictable (LLN).</strong> The fraction of
+          systems an attacker breaks converges to p: for a large infrastructure the per-system rate measured on one
+          attacker is a reliable estimate of the true vulnerability p, with error of order √(p(1 − p)/n). This is the
+          justification for measuring security with averages over many systems.</li>
+        <li><strong>Normalized score S<sub>n</sub>/√n: the fluctuations have a universal shape (CLT).</strong> Whatever the
+          single-step distribution (0/1 or ±1), deviations from the mean are Gaussian on the √n scale. In the
+          symmetric Rademacher case there is no drift: an attacker who is as often repelled as successful is, on
+          average, nowhere, yet its score wanders away from 0 by about √n, and its sign at the end is a coin toss.</li>
+        <li><strong>More attackers do not change the distribution, they sample its tail.</strong> Each attacker's score
+          has the same law; what grows with m is the best score, roughly nμ + σ√n·√(2 ln m) (a slowly growing,
+          logarithmic effect). Against a large population of attackers the defender should plan for the
+          <em>maximum</em>, not the mean: the best attacker among 10 000 sits about 3.9 standard deviations above the
+          average one. The total over all attackers, Σ<sub>j</sub> S<sub>n</sub><sup>(j)</sup>,
+          is itself a sum of nm i.i.d. increments: mean nmμ, standard deviation σ√(nm).</li>
+        <li><strong>More attackers give better estimates.</strong> The error of any estimate from the m trajectories (mean,
+          variance, probabilities, the shape of the histogram) decreases as 1/√m. A “suitable” m is therefore chosen for the
+          precision required: m ≈ 2000–5000 resolves probabilities of about 1% and KS distances of about 0.02; to see the
+          CLT at large n we need m large enough that the Monte Carlo noise 0.87/√m is below the true distance from the
+          normal.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>Statistics Homework · HMWK 3 · <a href="../index.html">All homeworks</a></p>
+  </footer>
+
+  <script src="sim.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
