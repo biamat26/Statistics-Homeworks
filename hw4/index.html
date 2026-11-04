@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMWK 4 — Welford's Recurrences and Sampling Distributions | Statistics Homework</title>
+  <link rel="stylesheet" href="katex/katex.min.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="hw4.css">
+</head>
+<body>
+  <header>
+    <p><a href="../index.html">← Back to all homeworks</a></p>
+    <span class="tag">HMWK 4</span>
+    <h1>Welford's Recurrences and the Sampling Mean and Variance</h1>
+    <p class="subtitle">Ex. 1: deriving online formulas for the mean, the sum of squares and the variance. Ex. 2: using them on the score trajectories of m hackers to study the sampling mean and the sampling variance as estimators of μ and σ².</p>
+  </header>
+
+  <main>
+    <nav class="toc">
+      <a href="#ex1">Ex. 1 – Welford's recurrences</a>
+      <a href="#code">Code</a>
+      <a href="#stability">Why not the textbook formula?</a>
+      <a href="#ex2">Ex. 2 – Sampling mean and variance</a>
+      <a href="#varyn">Different n</a>
+      <a href="#conclusions">Conclusions</a>
+    </nav>
+
+    <!-- ================================================================ -->
+    <section id="ex1">
+      <h2>Ex. 1 — Welford's recurrence formulas</h2>
+      <p>
+        Data x<sub>1</sub>, x<sub>2</sub>, … arrive one at a time (for instance the scores of a hacker, system after
+        system). We want the mean and the variance of the first k values after each new value, <strong>without storing
+        the data</strong> and without going through them twice. Notation:
+      </p>
+      <div class="math">$$M_k = \frac{1}{k}\sum_{i=1}^{k} x_i, \qquad SS_k = \sum_{i=1}^{k} (x_i - M_k)^2, \qquad s_k^2 = \frac{SS_k}{k-1}.$$</div>
+
+      <h3>Step 1: Knuth's recurrence for the mean</h3>
+      <p>Separate the last term of the sum and rewrite the sum of the first k − 1 values through the previous mean:</p>
+      <div class="math">$$k\,M_k = \sum_{i=1}^{k-1} x_i + x_k = (k-1)\,M_{k-1} + x_k = k\,M_{k-1} + (x_k - M_{k-1}).$$</div>
+      <p>Dividing by k:</p>
+      <div class="math result">$$M_k = M_{k-1} + \frac{x_k - M_{k-1}}{k}, \qquad M_0 = 0.$$</div>
+      <p class="muted">The new mean is the old mean corrected by a fraction 1/k of the “surprise” δ<sub>k</sub> = x<sub>k</sub> − M<sub>k−1</sub>. We will use δ<sub>k</sub> throughout, so M<sub>k</sub> = M<sub>k−1</sub> + δ<sub>k</sub>/k.</p>
+
+      <h3>Step 2: the same idea for the sum of squares</h3>
+      <p>Expand the square in SS<sub>k</sub>; since Σ<sub>i</sub> x<sub>i</sub> = kM<sub>k</sub>:</p>
+      <div class="math">$$SS_k = \sum_{i=1}^{k} x_i^2 - 2M_k\sum_{i=1}^{k} x_i + k M_k^2 = \sum_{i=1}^{k} x_i^2 - k M_k^2 .$$</div>
+      <p>Write the same expression for k − 1 and subtract, so that all the old squares cancel:</p>
+      <div class="math">$$SS_k - SS_{k-1} = x_k^2 - k M_k^2 + (k-1) M_{k-1}^2 .$$</div>
+      <p>Now express everything through M<sub>k−1</sub> and δ<sub>k</sub>, using x<sub>k</sub> = M<sub>k−1</sub> + δ<sub>k</sub> and M<sub>k</sub> = M<sub>k−1</sub> + δ<sub>k</sub>/k:</p>
+      <div class="math">$$x_k^2 = M_{k-1}^2 + 2M_{k-1}\delta_k + \delta_k^2, \qquad k M_k^2 = k M_{k-1}^2 + 2 M_{k-1}\delta_k + \frac{\delta_k^2}{k}.$$</div>
+      <p>Substituting, the terms in M<sub>k−1</sub> cancel and only δ<sub>k</sub> survives:</p>
+      <div class="math">$$SS_k - SS_{k-1} = \delta_k^2 - \frac{\delta_k^2}{k} = \frac{k-1}{k}\,\delta_k^2 .$$</div>
+      <p>Finally, notice that x<sub>k</sub> − M<sub>k</sub> = δ<sub>k</sub> − δ<sub>k</sub>/k = (k − 1)δ<sub>k</sub>/k, so the increment is a product of the deviations from the old and the new mean:</p>
+      <div class="math result">$$SS_k = SS_{k-1} + (x_k - M_{k-1})(x_k - M_k), \qquad SS_0 = 0.$$</div>
+
+      <h3>Step 3: the variance</h3>
+      <p>Dividing the recurrence for SS by k − 1 (for k ≥ 2) gives a recurrence for the sample variance directly:</p>
+      <div class="math result">$$s_k^2 = \frac{k-2}{k-1}\,s_{k-1}^2 + \frac{(x_k - M_{k-1})^2}{k}, \qquad s_1^2 = 0 .$$</div>
+      <p>and, dividing by k, for the population (biased) variance σ̂<sub>k</sub>² = SS<sub>k</sub>/k:</p>
+      <div class="math">$$\hat\sigma_k^2 = \frac{k-1}{k}\,\hat\sigma_{k-1}^2 + \frac{k-1}{k^2}\,(x_k - M_{k-1})^2 .$$</div>
+      <p class="muted">In practice one keeps SS<sub>k</sub> and divides only when the variance is needed: it is simpler and avoids repeated rounding.</p>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="code">
+      <h2>The code</h2>
+      <p>The core of the algorithm is three lines per new value:</p>
+<pre><code><span class="c">// state: k = count, M = mean, SS = sum of squared deviations (all start at 0)</span>
+k += 1;
+const d = x - M;          <span class="c">// δ = x − M(k−1)</span>
+M  += d / k;              <span class="c">// Knuth:   M(k)  = M(k−1)  + δ / k</span>
+SS += d * (x - M);        <span class="c">// Welford: SS(k) = SS(k−1) + (x − M(k−1))(x − M(k))</span>
+<span class="c">// sample variance s² = SS / (k − 1),  population variance = SS / k</span></code></pre>
+      <p class="muted">The same in Python, as a small reusable class:</p>
+<pre><code><span class="k">class</span> Welford:
+    <span class="k">def</span> __init__(self): self.k, self.M, self.SS = 0, 0.0, 0.0
+    <span class="k">def</span> add(self, x):
+        self.k += 1; d = x - self.M
+        self.M += d / self.k
+        self.SS += d * (x - self.M)
+    <span class="k">def</span> var(self): <span class="k">return</span> self.SS / (self.k - 1) <span class="k">if</span> self.k > 1 <span class="k">else</span> 0.0</code></pre>
+
+      <h3>Step by step</h3>
+      <div class="controls">
+        <label class="wide">Data (separated by spaces or commas)
+          <input id="wData" type="text" value="3 7 1 9 4 4 10 0" spellcheck="false">
+        </label>
+        <button id="wRun" class="primary">Run Welford</button>
+      </div>
+      <div class="table-wrap"><table id="wTable"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="stability">
+      <h2>Why not the textbook formula?</h2>
+      <p>
+        The one-pass “computational formula” <span class="im">$s^2 = \frac{1}{k-1}\left(\sum x_i^2 - \frac{(\sum x_i)^2}{k}\right)$</span>
+        also needs no second pass, but it subtracts two huge, almost equal numbers. In floating point (about 16
+        significant digits) the difference loses all its precision: <em>catastrophic cancellation</em>. Welford's
+        recurrence only ever works with deviations from the current mean, which are small.
+      </p>
+      <div class="controls">
+        <label>Offset added to the data 4, 7, 13, 16
+          <select id="offset">
+            <option value="0">0</option><option value="1e6">10⁶</option><option value="1e8">10⁸</option>
+            <option value="1e9" selected>10⁹</option><option value="1e12">10¹²</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap"><table id="stabTable"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="ex2">
+      <h2>Ex. 2 — Sampling mean and sampling variance</h2>
+      <p>
+        We extend Homework 3: each penetration attempt now gets a <strong>score between 0 and 10</strong>, drawn from a
+        fixed distribution with mean μ and variance σ². There are <strong>m hackers</strong>, each attacking
+        <strong>n systems</strong>, so every hacker produces a trajectory of n i.i.d. scores. For each hacker j,
+        Welford's recurrences give the <em>sampling mean</em> and the <em>sampling variance</em> of its n scores:
+      </p>
+      <div class="math">$$\bar X^{(j)} = \frac{1}{n}\sum_{i=1}^{n} X_i^{(j)}, \qquad S^{2\,(j)} = \frac{1}{n-1}\sum_{i=1}^{n}\bigl(X_i^{(j)} - \bar X^{(j)}\bigr)^2, \qquad j = 1,\dots,m .$$</div>
+      <p>Across hackers we average them and compare with μ and σ². Theory says:</p>
+      <div class="math">$$E[\bar X] = \mu,\quad \operatorname{Var}(\bar X) = \frac{\sigma^2}{n}; \qquad E[S^2] = \sigma^2,\quad \operatorname{Var}(S^2) = \frac{\mu_4}{n} - \frac{\sigma^4 (n-3)}{n(n-1)},$$</div>
+      <p class="muted">where μ<sub>4</sub> = E[(X − μ)⁴] is the fourth central moment. Dividing by n instead of n − 1 would give E = σ²(n − 1)/n: a biased estimator.</p>
+
+      <h3>The score distribution</h3>
+      <div class="controls">
+        <label>Distribution of a score
+          <select id="dist">
+            <option value="beta" selected>10 · Beta(2, 5) — continuous, most attempts score low</option>
+            <option value="unif">Discrete uniform on {0, 1, …, 10}</option>
+            <option value="binom">Binomial(10, 0.3) — 10 sub-goals, each reached with prob. 0.3</option>
+            <option value="bimodal">Bimodal: most attempts fail, a few almost succeed</option>
+          </select>
+        </label>
+      </div>
+      <div class="dist-row">
+        <div class="charts single"><figure><canvas id="cDist"></canvas><figcaption id="distCap"></figcaption></figure></div>
+        <div id="distInfo" class="info-grid"></div>
+      </div>
+
+      <h3>One experiment</h3>
+      <div class="controls">
+        <label>m hackers
+          <input id="m" type="number" min="10" max="100000" value="5000">
+        </label>
+        <label>n systems per hacker
+          <input id="n" type="number" min="2" max="10000" value="20">
+        </label>
+        <button id="run" class="primary">Simulate</button>
+      </div>
+      <div class="table-wrap"><table id="resTable"></table></div>
+      <div class="charts">
+        <figure><canvas id="hMean"></canvas><figcaption><b>The m sampling means.</b> Histogram, with the normal curve N(μ, σ²/n) predicted by the CLT. Dashed: μ.</figcaption></figure>
+        <figure><canvas id="hVar"></canvas><figcaption><b>The m sampling variances S².</b> Histogram, with N(σ², Var(S²)) for reference. Dashed: σ² (gold) and the mean of the biased estimator SS/n (red).</figcaption></figure>
+      </div>
+      <div class="charts">
+        <figure><canvas id="cTrajM"></canvas><figcaption><b>Running sampling mean</b> M<sub>k</sub> computed by Welford's recurrence for 25 hackers, k = 1 … max(n, 200). Dashed: μ ± 2σ/√k.</figcaption></figure>
+        <figure><canvas id="cTrajV"></canvas><figcaption><b>Running sampling variance</b> s<sub>k</sub>² = SS<sub>k</sub>/(k − 1) for the same hackers. Dashed: σ².</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="varyn">
+      <h2>Repeating the experiment for different n</h2>
+      <div class="controls">
+        <label>m hackers
+          <input id="m2" type="number" min="100" max="20000" value="5000">
+        </label>
+        <button id="runN" class="primary">Run for n = 2 … 1000</button>
+        <span id="prog" class="muted"></span>
+      </div>
+      <div class="charts">
+        <figure><canvas id="cBias"></canvas><figcaption><b>Averages across hackers.</b> Average of the sampling variances S² (blue) and of the biased SS/n (red) against n, compared with σ² (dashed). The unbiased estimator is on target for every n; SS/n underestimates σ² by the factor (n − 1)/n.</figcaption></figure>
+        <figure><canvas id="cVarN"></canvas><figcaption><b>Variability of the estimators</b> (log–log): variance across hackers of the sampling means and of the sampling variances, with the theoretical σ²/n and Var(S²). Both decrease as 1/n.</figcaption></figure>
+      </div>
+      <div class="table-wrap"><table id="nTable"></table></div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section id="conclusions">
+      <h2>Conclusions</h2>
+      <ul>
+        <li><strong>The sampling mean and the sampling variance are unbiased.</strong> For every n, the average over the m
+          hackers of X̄ matches μ and the average of S² matches σ², up to Monte Carlo noise of order 1/√m. This is the
+          meaning of E[X̄] = μ and E[S²] = σ²: individual hackers can be far off, but there is no systematic error.</li>
+        <li><strong>Dividing by n − 1 matters.</strong> The deviations are measured from X̄, which is itself fitted to the
+          data, so they are on average smaller than the deviations from μ: one degree of freedom is “used” by the mean.
+          SS/n underestimates σ² by the factor (n − 1)/n, which is visible for small n (−50% at n = 2) and vanishes as
+          n grows. Dividing by n − 1 (Bessel's correction) removes the bias exactly.</li>
+        <li><strong>More systems per hacker, less variability.</strong> Var(X̄) = σ²/n and Var(S²) ≈ (μ<sub>4</sub> − σ⁴)/n both
+          decrease as 1/n: the standard deviation of each estimate shrinks as 1/√n. Quadrupling the number of systems
+          halves the spread of the estimates. Both estimators are therefore <em>consistent</em>: they converge to μ and σ²
+          as n → ∞ (Law of Large Numbers).</li>
+        <li><strong>The shape of the sampling distributions.</strong> X̄ is approximately normal already for moderate n (CLT).
+          S² converges more slowly: for small n its distribution is clearly skewed to the right, especially for skewed or
+          heavy-tailed scores (large μ<sub>4</sub>, e.g. the bimodal distribution), and it can never be negative.</li>
+        <li><strong>Why this is useful in inferential statistics.</strong> In practice we observe <em>one</em> sample (one
+          hacker, or one audit of n systems) and μ, σ² are unknown. These results say how much to trust it: X̄ estimates μ
+          with standard error σ/√n, estimated by S/√n, which gives confidence intervals such as X̄ ± 1.96·S/√n and the
+          t-test. Unbiasedness and the known variance of the estimators are what make such statements possible; the m
+          simulated hackers are just a way of seeing the sampling distribution that, in a real study, we never observe
+          directly.</li>
+        <li><strong>n and m play different roles.</strong> n is the sample size of each estimate and controls its precision;
+          m is the number of repetitions of the whole experiment and only controls how well we can <em>see</em> the
+          sampling distribution (the averages across hackers have standard error σ/√(nm) and √(Var(S²)/m)).</li>
+        <li><strong>Welford's recurrences make all this cheap and safe.</strong> One pass, O(1) memory per hacker, numerically
+          stable: suitable for streams of scores that are never stored.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>Statistics Homework · HMWK 4 · <a href="../index.html">All homeworks</a></p>
+  </footer>
+
+  <script src="katex/katex.min.js"></script>
+  <script src="katex/contrib/auto-render.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
